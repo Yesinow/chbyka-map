@@ -52,9 +52,7 @@
         text-align: center;
         padding: 2.5rem 1rem 1rem;
         position: relative;
-        background-image: url('https://images.unsplash.com/photo-1563308398-b484411f2d93?auto=format&fit=crop&w=1920&q=80');
-        background-size: cover;
-        background-position: center;
+        /* Remove static image because we now use a video background */
         color: #fff;
       }
       header::before {
@@ -159,12 +157,100 @@
         font-size: 0.8rem;
         color: #666;
       }
+
+      /* Background video styles for header */
+      .background-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      /* Logo bar styling */
+      .logo-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      .logo-bar img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        /* Shrink header padding and fonts for tablets */
+        header {
+          padding: 2rem 1rem;
+        }
+        header h1 {
+          font-size: 2rem;
+        }
+        header p#tagline {
+          font-size: 0.9rem;
+        }
+        /* Stack controls vertically on medium screens */
+        .controls {
+          flex-direction: column;
+          align-items: stretch;
+          margin: -1.5rem auto 1rem;
+        }
+        .control-box {
+          width: 100%;
+          justify-content: center;
+        }
+        /* Reduce map height for shorter viewports */
+        #map {
+          height: 50vh;
+          width: calc(100% - 2rem);
+        }
+      }
+
+      @media (max-width: 480px) {
+        /* Further shrink header for phones */
+        header {
+          padding: 1.5rem 1rem;
+        }
+        header h1 {
+          font-size: 1.7rem;
+        }
+        header p#tagline {
+          font-size: 0.8rem;
+        }
+        .control-box input[type="text"],
+        .control-box select {
+          font-size: 0.8rem;
+        }
+        #map {
+          height: 45vh;
+        }
+      }
     </style>
   </head>
   <body>
     <header>
+      <!-- Background video: plays automatically, muted, looped -->
+      <video class="background-video" autoplay muted loop playsinline>
+        <source src="https://videos.pexels.com/video-files/8541854/8541854-hd_1920_1080_25fps.mp4" type="video/mp4" />
+      </video>
       <h1>Chbyka Summer Tour 2025</h1>
       <p id="tagline">30 plages de Saïdia à Dakhla – du 21 juillet au 31 août 2025</p>
+      <!-- Logo bar centered under the tagline -->
+      <div class="logo-bar">
+        <img src="https://source.unsplash.com/50x50/?beach,logo,blue" alt="Logo A" />
+        <img src="https://source.unsplash.com/50x50/?ocean,logo" alt="Logo B" />
+        <img src="https://source.unsplash.com/50x50/?sustainability,logo" alt="Logo C" />
+      </div>
     </header>
     <div class="controls">
       <div class="control-box" style="flex:1">
