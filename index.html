@@ -53,8 +53,9 @@
         text-align: center;
         padding: 2.5rem 1rem 1rem;
         position: relative;
-        /* Remove static image because we now use a video background */
         color: #fff;
+        /* Gradient background for the header using the theme colours */
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       }
       header::before {
         content: '';
@@ -152,12 +153,7 @@
         color: var(--secondary);
         margin-top: 0.25rem;
       }
-      footer {
-        text-align: center;
-        padding: 1rem;
-        font-size: 0.8rem;
-        color: #666;
-      }
+      /* The footer styles are redefined below with video integration. */
 
       /* Header video styles when embedding a YouTube video */
       .header-video {
@@ -177,6 +173,45 @@
         margin: 1.5rem auto 0.5rem;
         z-index: 1;
         position: relative;
+      }
+
+      /* Footer video styling */
+      footer {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: var(--background);
+        color: #666;
+      }
+      .footer-video-wrapper {
+        margin: 0 auto;
+        max-width: 960px;
+        width: 100%;
+      }
+      .footer-logo {
+        width: 80px;
+        height: auto;
+        display: block;
+        margin: 0 auto 0.75rem;
+      }
+      .video-container {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 ratio */
+        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      .footer-text {
+        margin-top: 1rem;
+        font-size: 0.8rem;
       }
 
       /* Responsive adjustments */
@@ -231,8 +266,6 @@
   </head>
   <body>
     <header>
-      <!-- Embedded YouTube video (muted and looping) as background -->
-      <iframe class="header-video" src="https://www.youtube.com/embed/tNCnCEIfnkA?autoplay=1&mute=1&loop=1&playlist=tNCnCEIfnkA&controls=0&modestbranding=1" allow="autoplay; fullscreen"></iframe>
       <!-- Brand logo centered -->
       <img src="logo.jpg" alt="Chbyka logo" class="header-logo" />
       <h1>Chbyka Summer Tour 2025</h1>
@@ -251,7 +284,19 @@
       </div>
     </div>
     <div id="map"></div>
-    <footer>© 2025 Chbyka – pour des plages propres</footer>
+    <!-- Footer containing the small logo and YouTube video.  The video is placed
+         inside the footer so that it spans the full available width on all devices.
+         A small logo sits above the video to reinforce brand identity.  After
+         the video, a simple copyright line is displayed. -->
+    <footer>
+      <div class="footer-video-wrapper">
+        <img src="logo.jpg" alt="Chbyka logo" class="footer-logo" />
+        <div class="video-container">
+          <iframe src="https://www.youtube.com/embed/tNCnCEIfnkA?autoplay=1&mute=1&loop=1&playlist=tNCnCEIfnkA&controls=0&modestbranding=1" allow="autoplay; fullscreen"></iframe>
+        </div>
+      </div>
+      <p class="footer-text">© 2025 Chbyka – pour des plages propres</p>
+    </footer>
     <!-- Leaflet JS loaded from CDN -->
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
