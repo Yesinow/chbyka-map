@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<!--
+  Chbyka Summer Tour 2025 – Leaflet map version
+
+  This implementation uses the Leaflet JavaScript library loaded from
+  the public unpkg CDN to display a real interactive map of Morocco with
+  pan and zoom. Markers represent the tour’s beaches; clicking a marker
+  opens a popup containing an Unsplash image and a bilingual description.
+  A search bar filters markers in real time and a language selector
+  toggles the interface between French and English. A modern UI and
+  responsive design ensure a professional look.
+
+  Note: This page must be served via a local web server (e.g. using
+  `python -m http.server`) and requires an Internet connection to
+  download Leaflet assets and map tiles from OpenStreetMap.
+-->
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chbyka Summer Tour 2025 – Carte Leaflet</title>
+    <!-- Remote Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sA+e8AR40KXLG0RvP+L2T14jReA7hhnoyOSYtUJZsEGsv6g4iPZWzbmW0/twBtt6"
+      crossorigin=""
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #0077b6;
+        --secondary: #00b4d8;
+        --background: #f5f9fc;
+        --card-bg: #ffffff;
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --blur-radius: 12px;
+        --border-radius: 12px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: var(--background);
+        color: #333;
+      }
+      header {
+        text-align: center;
+        padding: 2.5rem 1rem 1rem;
+        position: relative;
+        background-image: url('https://images.unsplash.com/photo-1563308398-b484411f2d93?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        color: #fff;
+      }
+      header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+      }
+      header h1 {
+        position: relative;
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 600;
+      }
+      header p#tagline {
+        position: relative;
+        margin: 0.5rem 0 0;
+        font-size: 1rem;
+        font-weight: 400;
+      }
+      /* Controls */
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin: -2rem auto 1rem;
+        max-width: 800px;
+        padding: 0 1rem;
+      }
+      .control-box {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--blur-radius));
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .control-box input[type="text"] {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+      .control-box select {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+      label {
+        font-size: 0.9rem;
+        margin-right: 0.25rem;
+      }
+      #map {
+        width: calc(100% - 2rem);
+        height: 60vh;
+        margin: 0 auto;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      /* Popup content styling */
+      .leaflet-popup-content-wrapper {
+        border-radius: var(--border-radius);
+      }
+      .leaflet-popup-content {
+        margin: 0;
+      }
+      .popup-img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+      }
+      .popup-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin: 0;
+      }
+      .popup-desc {
+        font-size: 0.85rem;
+        margin: 0.25rem 0;
+      }
+      .popup-date {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--secondary);
+        margin-top: 0.25rem;
+      }
+      footer {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.8rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Chbyka Summer Tour 2025</h1>
+      <p id="tagline">30 plages de Saïdia à Dakhla – du 21 juillet au 31 août 2025</p>
+    </header>
+    <div class="controls">
+      <div class="control-box" style="flex:1">
+        <input id="search" type="text" placeholder="Rechercher une plage..." />
+      </div>
+      <div class="control-box">
+        <label for="language">Langue :</label>
+        <select id="language">
+          <option value="fr" selected>Français</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+    <div id="map"></div>
+    <footer>© 2025 Chbyka – pour des plages propres</footer>
+    <!-- Leaflet JS loaded from CDN -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha384-7/igvKh6e2wCuCpdzliMVtSZeki2MdYhrc+4gZc5U07z1H81m9FLCUcidkR/Nzsr"
+      crossorigin=""
+    ></script>
+    <script>
+      const locations = [
+        { lat: 35.09, lng: -2.25, city: 'Saïdia', beach: 'Plage Sibe Moulouya', date: '23/07/2025', img: 'https://source.unsplash.com/400x300/?saidia,beach,morocco', desc: { fr: "Plage méditerranéenne calme située à l’embouchure de l’oued Moulouya.", en: 'A calm Mediterranean beach situated at the mouth of the Moulouya river.' } },
+        { lat: 35.17, lng: -3.00, city: 'Nador', beach: 'Plages Sidi Lehcen & Charrana 1', date: '24/07/2025', img: 'https://source.unsplash.com/400x300/?nador,beach,morocco', desc: { fr: 'Deux criques sauvages aux eaux turquoise près de Nador.', en: 'Two wild coves with turquoise waters near Nador.' } },
+        { lat: 35.25, lng: -3.93, city: 'Al Hoceima', beach: 'Plage Thimachdin', date: '25/07/2025', img: 'https://source.unsplash.com/400x300/?al-hoceima,beach,morocco', desc: { fr: 'Plage du Rif aux eaux cristallines, entourée de collines.', en: 'Rif beach with crystal‑clear waters, surrounded by hills.' } },
+        { lat: 35.17, lng: -5.26, city: 'Chefchaouen', beach: 'Plage Chmaala', date: '26/07/2025', img: 'https://source.unsplash.com/400x300/?chefchaouen,beach,morocco', desc: { fr: 'Petite plage près de Chefchaouen, nichée entre mer et montagnes.', en: 'A small beach near Chefchaouen, nestled between sea and mountains.' } },
+        { lat: 35.77, lng: -5.84, city: 'Tanger', beach: 'Plage Ba Kacem', date: '28/07/2025', img: 'https://source.unsplash.com/400x300/?tangier,beach,morocco', desc: { fr: 'Plage emblématique près du cap Spartel offrant une vue sur le détroit.', en: 'Iconic beach near Cap Spartel offering a view of the Strait of Gibraltar.' } },
+        { lat: 35.77, lng: -5.80, city: 'Tanger', beach: 'Plage Merkala', date: '28/07/2025', img: 'https://source.unsplash.com/400x300/?tangier,merkala,beach', desc: { fr: 'Plage populaire de Tanger, idéale pour admirer le coucher du soleil.', en: 'A popular Tangier beach perfect for watching the sunset.' } },
+        { lat: 35.46, lng: -6.05, city: 'Asilah', beach: 'Plage Asilah', date: '30/07/2025', img: 'https://source.unsplash.com/400x300/?asilah,beach,morocco', desc: { fr: 'Plage de sable blanc bordée par les remparts de la médina.', en: 'White‑sand beach bordered by the fortified walls of the medina.' } },
+        { lat: 35.21, lng: -6.16, city: 'Larache', beach: 'Plage Ras Rmal', date: '31/07/2025', img: 'https://source.unsplash.com/400x300/?larache,beach,morocco', desc: { fr: 'Longue plage au sable doré à l’embouchure du Loukkos.', en: 'Long golden‑sand beach at the mouth of the Loukkos river.' } },
+        { lat: 34.25, lng: -6.70, city: 'Kénitra', beach: 'Plage Mehdia', date: '01/08/2025', img: 'https://source.unsplash.com/400x300/?mehdiya,beach,morocco', desc: { fr: 'Plage prisée pour ses vagues et ses sports nautiques près de Kénitra.', en: 'Popular beach for its waves and water sports near Kenitra.' } },
+        { lat: 33.79, lng: -7.17, city: 'Bouznika', beach: 'La Kasbah', date: '02/08/2025', img: 'https://source.unsplash.com/400x300/?bouznika,beach,morocco', desc: { fr: 'Plage propre aux eaux calmes entre Rabat et Casablanca.', en: 'Clean beach with calm waters between Rabat and Casablanca.' } },
+        { lat: 34.05, lng: -6.79, city: 'Salé', beach: 'Plage Salé', date: '04/08/2025', img: 'https://source.unsplash.com/400x300/?sale,beach,morocco', desc: { fr: 'Plage urbaine à l’embouchure du Bouregreg face à Rabat.', en: 'Urban beach at the mouth of the Bouregreg river facing Rabat.' } },
+        { lat: 33.66, lng: -7.49, city: 'Al Mansouria', beach: 'Pont Blondin', date: '03/08/2025', img: 'https://source.unsplash.com/400x300/?al-mansouria,beach,morocco', desc: { fr: 'Plage tranquille bordée de pins et de dunes.', en: 'Peaceful beach bordered by pines and dunes.' } },
+        { lat: 33.49, lng: -7.85, city: 'Bir Jdid', beach: 'Plage Mozona', date: '09/08/2025', img: 'https://source.unsplash.com/400x300/?beach,atlantic,morocco', desc: { fr: 'Grande plage sauvage, parfaite pour se ressourcer.', en: 'Large wild beach, perfect for getting away from it all.' } },
+        { lat: 32.74, lng: -9.00, city: 'Oualidia', beach: 'Plage La Grande', date: '06/08/2025', img: 'https://source.unsplash.com/400x300/?oualidia,lagoon,morocco', desc: { fr: 'Lagune protégée offrant des eaux turquoise et un sable doux.', en: 'Protected lagoon with turquoise waters and soft sand.' } },
+        { lat: 32.59, lng: -9.83, city: 'Beddouza', beach: 'Plage Beddouza', date: '07/08/2025', img: 'https://source.unsplash.com/400x300/?beddouza,beach,morocco', desc: { fr: 'Plage sauvage appréciée des surfeurs.', en: 'Wild beach appreciated by surfers.' } },
+        { lat: 32.30, lng: -9.23, city: 'Safi', beach: 'Plage Centre', date: '10/08/2025', img: 'https://source.unsplash.com/400x300/?safi,beach,morocco', desc: { fr: 'Plage centrale de Safi réputée pour ses vagues et son port.', en: 'Central Safi beach renowned for its waves and harbour.' } },
+        { lat: 31.34, lng: -9.81, city: 'Essaouira', beach: 'Plage Sidi Kaouki', date: '11/08/2025', img: 'https://source.unsplash.com/400x300/?essaouira,sidi-kaouki,beach', desc: { fr: 'Plage ouverte sur l’Atlantique, prisée des surfeurs et kite‑surfeurs.', en: 'Open Atlantic beach popular with surfers and kitesurfers.' } },
+        { lat: 30.83, lng: -9.83, city: 'Imessouane', beach: 'Plage La Baie', date: '12/08/2025', img: 'https://source.unsplash.com/400x300/?imsouane,beach,morocco', desc: { fr: 'Baie paisible dotée d’une des plus longues vagues du Maroc.', en: 'Peaceful bay with one of Morocco’s longest waves.' } },
+        { lat: 30.55, lng: -9.71, city: 'Taghazout', beach: 'Plage Tamraght', date: '13/08/2025', img: 'https://source.unsplash.com/400x300/?taghazout,surf,morocco', desc: { fr: 'Spot de surf renommé au sud d’Essaouira.', en: 'Renowned surf spot south of Essaouira.' } },
+        { lat: 30.45, lng: -9.64, city: 'Agadir', beach: 'Plage Anza', date: '14/08/2025', img: 'https://source.unsplash.com/400x300/?agadir,anza,beach', desc: { fr: 'Petite baie rocheuse proche du port d’Agadir.', en: 'Small rocky bay near the port of Agadir.' } },
+        { lat: 30.42, lng: -9.60, city: 'Agadir', beach: 'Plage Agadir Ville', date: '15/08/2025', img: 'https://source.unsplash.com/400x300/?agadir,beach,morocco', desc: { fr: 'Grande plage urbaine de sable doré avec promenade maritime.', en: 'Large urban beach of golden sand with a seafront promenade.' } },
+        { lat: 30.15, lng: -9.64, city: 'Massa', beach: 'Plage Massa', date: '16/08/2025', img: 'https://source.unsplash.com/400x300/?massa,beach,morocco', desc: { fr: 'Plage sauvage à l’embouchure de la réserve naturelle du Massa.', en: 'Wild beach at the mouth of the Massa nature reserve.' } },
+        { lat: 29.78, lng: -9.84, city: 'Tiznit', beach: 'Plage Aglou', date: '19/08/2025', img: 'https://source.unsplash.com/400x300/?agoulu,beach,morocco', desc: { fr: 'Plage paisible et préservée à quelques kilomètres de Tiznit.', en: 'Peaceful, unspoilt beach a few kilometres from Tiznit.' } },
+        { lat: 29.55, lng: -10.15, city: 'Mirleft', beach: 'Plage Tamrhroucht', date: '18/08/2025', img: 'https://source.unsplash.com/400x300/?mirleft,beach,morocco', desc: { fr: 'Plage connue pour ses falaises et ses paysages sauvages.', en: 'Beach known for its cliffs and wild landscapes.' } },
+        { lat: 29.37, lng: -10.18, city: 'Sidi Ifni', beach: 'Plage Casa Bania', date: '17/08/2025', img: 'https://source.unsplash.com/400x300/?sidi-ifni,beach,morocco', desc: { fr: 'Longue plage bordée de dunes près de Sidi Ifni.', en: 'Long beach bordered by dunes near Sidi Ifni.' } },
+        { lat: 27.94, lng: -12.93, city: 'Tarfaya', beach: 'Plage Casamar', date: '20/08/2025', img: 'https://source.unsplash.com/400x300/?tarfaya,beach,morocco', desc: { fr: 'Plage près du cap Juby dans une atmosphère désertique.', en: 'Beach near Cape Juby with a desert atmosphere.' } },
+        { lat: 27.15, lng: -13.42, city: 'Laâyoune', beach: 'Plage Foum El Oued', date: '21/08/2025', img: 'https://source.unsplash.com/400x300/?laayoune,beach,morocco', desc: { fr: 'Vaste étendue sablonneuse à la sortie de Laâyoune.', en: 'Vast sandy stretch at the edge of Laayoune.' } },
+        { lat: 26.14, lng: -14.50, city: 'Boujdour', beach: 'Plage Ancient Port', date: '23/08/2025', img: 'https://source.unsplash.com/400x300/?boujdour,beach,morocco', desc: { fr: 'Plage tranquille à l’extrémité sud de Boujdour.', en: 'Quiet beach at the southern end of Boujdour.' } },
+        { lat: 23.72, lng: -15.95, city: 'Dakhla', beach: 'Plage Foum Labouir & Lagune Dakhla', date: '26/08/2025', img: 'https://source.unsplash.com/400x300/?dakhla,beach,morocco', desc: { fr: 'Plage emblématique et lagune, paradis des sports nautiques.', en: 'Iconic beach and lagoon, a paradise for water sports.' } }
+      ];
+      const taglines = {
+        fr: '30 plages de Saïdia à Dakhla – du 21 juillet au 31 août 2025',
+        en: '30 beaches from Saidia to Dakhla – from 21 July to 31 August 2025'
+      };
+      let currentLang = 'fr';
+      // Initialize map
+      const map = L.map('map').setView([31.5, -7.5], 5);
+      // Tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      // Icons (use default Leaflet icons)
+      const markers = [];
+      locations.forEach((loc) => {
+        const marker = L.marker([loc.lat, loc.lng]);
+        marker.bindPopup(() => {
+          const div = document.createElement('div');
+          const img = document.createElement('img');
+          img.src = loc.img;
+          img.alt = `${loc.city} – ${loc.beach}`;
+          img.className = 'popup-img';
+          const title = document.createElement('p');
+          title.className = 'popup-title';
+          title.textContent = `${loc.city} – ${loc.beach}`;
+          const desc = document.createElement('p');
+          desc.className = 'popup-desc';
+          desc.textContent = loc.desc[currentLang];
+          const date = document.createElement('p');
+          date.className = 'popup-date';
+          date.textContent = loc.date;
+          div.appendChild(img);
+          div.appendChild(title);
+          div.appendChild(desc);
+          div.appendChild(date);
+          return div;
+        });
+        marker.addTo(map);
+        markers.push(marker);
+      });
+      // Search filtering
+      const searchInput = document.getElementById('search');
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        markers.forEach((marker, idx) => {
+          const loc = locations[idx];
+          const text = `${loc.city} ${loc.beach}`.toLowerCase();
+          if (query === '' || text.includes(query)) {
+            marker.addTo(map);
+          } else {
+            marker.removeFrom(map);
+          }
+        });
+      });
+      // Language switch
+      const languageSelect = document.getElementById('language');
+      languageSelect.addEventListener('change', () => {
+        currentLang = languageSelect.value;
+        document.getElementById('tagline').textContent = taglines[currentLang];
+        searchInput.placeholder = currentLang === 'fr' ? 'Rechercher une plage...' : 'Search for a beach...';
+        // Update open popups and future popups
+        markers.forEach((marker, idx) => {
+          const loc = locations[idx];
+          marker.getPopup().setContent(() => {
+            const div = document.createElement('div');
+            const img = document.createElement('img');
+            img.src = loc.img;
+            img.alt = `${loc.city} – ${loc.beach}`;
+            img.className = 'popup-img';
+            const title = document.createElement('p');
+            title.className = 'popup-title';
+            title.textContent = `${loc.city} – ${loc.beach}`;
+            const desc = document.createElement('p');
+            desc.className = 'popup-desc';
+            desc.textContent = loc.desc[currentLang];
+            const date = document.createElement('p');
+            date.className = 'popup-date';
+            date.textContent = loc.date;
+            div.appendChild(img);
+            div.appendChild(title);
+            div.appendChild(desc);
+            div.appendChild(date);
+            return div;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
