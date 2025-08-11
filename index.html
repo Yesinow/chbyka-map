@@ -33,9 +33,10 @@
     />
     <style>
       :root {
-        --primary: #0077b6;
-        --secondary: #00b4d8;
-        --background: #f5f9fc;
+        /* Updated colour palette inspired by the Chbyka logo */
+        --primary: #003f5c;
+        --secondary: #2ec4b6;
+        --background: #e6f9ff;
         --card-bg: #ffffff;
         --glass-bg: rgba(255, 255, 255, 0.75);
         --blur-radius: 12px;
@@ -158,33 +159,24 @@
         color: #666;
       }
 
-      /* Background video styles for header */
-      .background-video {
+      /* Header video styles when embedding a YouTube video */
+      .header-video {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        z-index: -1;
+        border: none;
+        pointer-events: none;
       }
-
-      /* Logo bar styling */
-      .logo-bar {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-        margin-top: 1rem;
-        position: relative;
+      /* Single logo styling */
+      .header-logo {
+        width: 160px;
+        height: auto;
+        display: block;
+        margin: 1.5rem auto 0.5rem;
         z-index: 1;
-      }
-      .logo-bar img {
-        width: 50px;
-        height: 50px;
-        object-fit: contain;
-        border-radius: var(--border-radius);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
       }
 
       /* Responsive adjustments */
@@ -239,18 +231,12 @@
   </head>
   <body>
     <header>
-      <!-- Background video: plays automatically, muted, looped -->
-      <video class="background-video" autoplay muted loop playsinline>
-        <source src="https://videos.pexels.com/video-files/8541854/8541854-hd_1920_1080_25fps.mp4" type="video/mp4" />
-      </video>
+      <!-- Embedded YouTube video (muted and looping) as background -->
+      <iframe class="header-video" src="https://www.youtube.com/embed/tNCnCEIfnkA?autoplay=1&mute=1&loop=1&playlist=tNCnCEIfnkA&controls=0&modestbranding=1" allow="autoplay; fullscreen"></iframe>
+      <!-- Brand logo centered -->
+      <img src="logo.jpg" alt="Chbyka logo" class="header-logo" />
       <h1>Chbyka Summer Tour 2025</h1>
       <p id="tagline">30 plages de Saïdia à Dakhla – du 21 juillet au 31 août 2025</p>
-      <!-- Logo bar centered under the tagline -->
-      <div class="logo-bar">
-        <img src="https://source.unsplash.com/50x50/?beach,logo,blue" alt="Logo A" />
-        <img src="https://source.unsplash.com/50x50/?ocean,logo" alt="Logo B" />
-        <img src="https://source.unsplash.com/50x50/?sustainability,logo" alt="Logo C" />
-      </div>
     </header>
     <div class="controls">
       <div class="control-box" style="flex:1">
